@@ -8,14 +8,6 @@ export default function Experience() {
     <>
       <Perf position="top-left" />
 
-      <directionalLight
-        castShadow
-        position={[1, 2, 3]}
-        intensity={4.5}
-        shadow-normalBias={0.04}
-      />
-      <ambientLight intensity={1.5} />
-
       <PresentationControls
         global
         // rotation={[0.13, 0.1, 0]}
@@ -24,6 +16,14 @@ export default function Experience() {
         // config={{ mass: 2, tension: 400 }}
         // snap={{ mass: 4, tension: 400 }}
       >
+        <directionalLight
+          castShadow
+          position={[1, 2, 3]}
+          intensity={4.5}
+          shadow-normalBias={0.04}
+        />
+        <ambientLight intensity={1.5} />
+
         <Physics debug>
           <RigidBody colliders="ball">
             <mesh position={[1.75, 1.5, -2.5]} scale={0.15}>
