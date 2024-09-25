@@ -1,9 +1,13 @@
 import { PresentationControls } from "@react-three/drei";
-import { Physics, RigidBody } from "@react-three/rapier";
+import { Physics } from "@react-three/rapier";
 import { Perf } from "r3f-perf";
 import { Floor } from "./Floor";
+import { Player } from "./components/Player/Player";
+import { useRef } from "react";
 
 export default function Experience() {
+  const playerRef = useRef(null);
+
   return (
     <>
       <Perf position="top-left" />
@@ -31,10 +35,9 @@ export default function Experience() {
               <meshStandardMaterial />
             </mesh>
           </RigidBody>
+          <Player ref={playerRef} />
 
-          <RigidBody type="fixed">
-            <Floor />
-          </RigidBody>
+          <Floor />
         </Physics>
       </PresentationControls>
     </>
