@@ -23,10 +23,10 @@ export default function Experience() {
   });
 
   const points = [
-    { x: 5, y: -7, z: 1.5 },
-    { x: 5, y: -5.5, z: 1.5 },
-    { x: 5, y: -4, z: 0.5 },
-    { x: 7, y: -4, z: 0.5 },
+    { x: 5, y: 1.5, z: -7 },
+    { x: 5, y: 1.5, z: -5.5 },
+    { x: 5, y: 0.5, z: -4 },
+    { x: 7, y: 0.5, z: -4 },
   ];
 
   return (
@@ -72,10 +72,10 @@ export default function Experience() {
                       ...acc,
                       <cubicBezierCurve3
                         key={`point-${i}`}
-                        v0={[x, z, y]}
-                        v1={[x, z, y]}
-                        v2={[endPoint.x, endPoint.z, endPoint.y]}
-                        v3={[endPoint.x, endPoint.z, endPoint.y]}
+                        v0={[x, y, z]}
+                        v1={[x, y, z]}
+                        v2={[endPoint.x, endPoint.y, endPoint.z]}
+                        v3={[endPoint.x, endPoint.y, endPoint.z]}
                       />,
                     ];
                   }
