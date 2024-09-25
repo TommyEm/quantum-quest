@@ -1,16 +1,39 @@
-import { PresentationControls } from "@react-three/drei";
+import { useRef } from "react";
+import {
+  MotionPathControls,
+  OrbitControls,
+  PresentationControls,
+} from "@react-three/drei";
 import { Physics } from "@react-three/rapier";
+import { useControls } from "leva";
+import { bezier } from "@leva-ui/plugin-bezier";
 import { Perf } from "r3f-perf";
 import { Floor } from "./Floor";
 import { Player } from "./components/Player/Player";
-import { useRef } from "react";
+import { Player2 } from "./components/Player/Player2";
+import { Motion } from "./components/Motion/Motion";
 
 export default function Experience() {
   const playerRef = useRef(null);
+  const { autoPlay, cameraFullControl, debug, start } = useControls({
+    autoPlay: false,
+    cameraFullControl: false,
+    debug: true,
+    start: true,
+  });
+
+  const points = [
+    { x: 5, y: -7, z: 1.5 },
+    { x: 5, y: -5.5, z: 1.5 },
+    { x: 5, y: -4, z: 0.5 },
+    { x: 7, y: -4, z: 0.5 },
+  ];
 
   return (
     <>
       <Perf position="top-left" />
+
+      {cameraFullControl && <OrbitControls />}
 
       <PresentationControls
         global
@@ -28,14 +51,43 @@ export default function Experience() {
         />
         <ambientLight intensity={1.5} />
 
-        <Physics debug>
-          <RigidBody colliders="ball">
-            <mesh position={[1.75, 1.5, -2.5]} scale={0.15}>
-              <sphereGeometry />
-              <meshStandardMaterial />
-            </mesh>
-          </RigidBody>
-          <Player ref={playerRef} />
+        <Physics debug={debug}>
+          {autoPlay ? (
+            <Player ref={playerRef} />
+          ) : (
+            <>
+              <MotionPathControls
+                offset={1}
+                object={playerRef}
+                damping={0}
+                debug
+                duration={0.5}
+                maxSpeed={100}
+                autoStart={start}
+              >
+                {points.reduce((acc, { x, y, z }, i) => {
+                  const endPoint = points[i + 1];
+                  if (endPoint) {
+                    return [
+                      ...acc,
+                      <cubicBezierCurve3
+                        key={`point-${i}`}
+                        v0={[x, z, y]}
+                        v1={[x, z, y]}
+                        v2={[endPoint.x, endPoint.z, endPoint.y]}
+                        v3={[endPoint.x, endPoint.z, endPoint.y]}
+                      />,
+                    ];
+                  }
+                  return acc;
+                }, [])}
+
+                <Motion />
+              </MotionPathControls>
+
+              <Player2 ref={playerRef} />
+            </>
+          )}
 
           <Floor />
         </Physics>

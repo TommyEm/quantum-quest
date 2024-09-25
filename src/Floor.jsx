@@ -10,7 +10,7 @@ export const Floor = (props) => {
   };
 
   return (
-    <group {...props} scale={0.35} dispose={null}>
+    <group {...props} dispose={null}>
       <Spot position={[7, 0.1, -4]} onClick={handleSpotClick} />
 
       <Spot position={[-2, 0.1, -6]} onClick={handleSpotClick} />

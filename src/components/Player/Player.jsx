@@ -1,9 +1,9 @@
-import { forwardRef, Fragment, useEffect, useRef } from "react";
+import { forwardRef, useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 import { RigidBody, useRapier } from "@react-three/rapier";
 
-export const Player = forwardRef((props, ref) => {
+export const Player = forwardRef(({ position = [1.75, 1.5, -2.5] }, ref) => {
   const playerRef = useRef(null);
   const { rapier, world } = useRapier();
   const [subscribeKeys, getKeys] = useKeyboardControls();
@@ -75,22 +75,19 @@ export const Player = forwardRef((props, ref) => {
   });
 
   return (
-    <Fragment>
-      <RigidBody
-        ref={playerRef}
-        canSleep={false}
-        colliders="ball"
-        restitution={0.2}
-        friction={1}
-        linearDamping={0.5}
-        angularDamping={0.5}
-      >
-        <mesh ref={ref} position={[1.75, 1.5, -2.5]} scale={0.15}>
-          <sphereGeometry />
-          {/* <icosahedronGeometry /> */}
-          <meshStandardMaterial />
-        </mesh>
-      </RigidBody>
-    </Fragment>
+    <RigidBody
+      ref={playerRef}
+      canSleep={false}
+      colliders="ball"
+      restitution={0.2}
+      friction={1}
+      linearDamping={0.5}
+      angularDamping={0.5}
+    >
+      <mesh ref={ref} position={position} scale={0.15}>
+        <sphereGeometry />
+        <meshStandardMaterial />
+      </mesh>
+    </RigidBody>
   );
 });
