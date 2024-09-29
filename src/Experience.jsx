@@ -45,6 +45,17 @@ const points = [
   new THREE.Vector3(-7.5, -4, -9), // Exit
 ];
 
+const spotPoints = [
+  points[0],
+  points[3],
+  points[7],
+  points[10],
+  points[12],
+  points[16],
+  points[21],
+  points[26],
+];
+
 const getPointIndex = (points, pointPosition) => {
   return points
     .map((point, i) =>
@@ -55,13 +66,16 @@ const getPointIndex = (points, pointPosition) => {
 
 export default function Experience() {
   const playerRef = useRef(null);
+  const dummyObjectRef = useRef(null);
   const [path, setPath] = useState([points[0]]);
-  const { keyboardControl, cameraFullControl, debug, start } = useControls({
-    cameraFullControl: true,
-    debug: false,
-    keyboardControl: false,
-    start: false,
-  });
+  const { keyboardControl, cameraFullControl, debug, debugPath, start } =
+    useControls({
+      cameraFullControl: true,
+      debug: false,
+      debugPath: true,
+      keyboardControl: false,
+      start: false,
+    });
 
   const [springs, api] = useSpring(
     () => ({
@@ -77,30 +91,37 @@ export default function Experience() {
 
     const playerPosition = playerRef.current?.position;
     const spotPosition = e.object.position;
-    const startPointIndex = getPointIndex(points, playerPosition);
-    const endPointIndex = getPointIndex(points, spotPosition);
 
-    const isGoingForward = startPointIndex < endPointIndex;
-    const orderedPoints = isGoingForward ? points : points.reverse();
+    // Move only when clicking on a Spot
+    if (getPointIndex(spotPoints, spotPosition) >= 0) {
+      const startPointIndex = getPointIndex(points, playerPosition);
+      const endPointIndex = getPointIndex(points, spotPosition);
 
-    const startOrderedPointIndex = getPointIndex(orderedPoints, playerPosition);
-    const endOrderedPointIndex = getPointIndex(orderedPoints, spotPosition);
+      const isGoingForward = startPointIndex < endPointIndex;
+      const orderedPoints = isGoingForward ? points : points.reverse();
 
-    const pointsToMove = orderedPoints.slice(
-      startOrderedPointIndex,
-      endOrderedPointIndex + 1
-    );
+      const startOrderedPointIndex = getPointIndex(
+        orderedPoints,
+        playerPosition
+      );
+      const endOrderedPointIndex = getPointIndex(orderedPoints, spotPosition);
 
-    api.start({
-      from: {
-        position: [playerPosition.x, playerPosition.y, playerPosition.z],
-      },
-      to: async (next, cancel) => {
-        for (const point of pointsToMove) {
-          await next({ position: [point.x, point.y, point.z] });
-        }
-      },
-    });
+      const pointsToMove = orderedPoints.slice(
+        startOrderedPointIndex,
+        endOrderedPointIndex + 1
+      );
+
+      api.start({
+        from: {
+          position: [playerPosition.x, playerPosition.y, playerPosition.z],
+        },
+        to: async (next, cancel) => {
+          for (const point of pointsToMove) {
+            await next({ position: [point.x, point.y, point.z] });
+          }
+        },
+      });
+    }
   };
 
   return (
@@ -129,15 +150,34 @@ export default function Experience() {
           {keyboardControl ? (
             <Player ref={playerRef} />
           ) : (
-            <animated.mesh
-              ref={playerRef}
-              scale={0.15}
-              {...springs}
-              onClick={handleClick}
-            >
-              <sphereGeometry />
-              <meshStandardMaterial color="purple" />
-            </animated.mesh>
+            <>
+              <MotionPathControls object={dummyObjectRef} debug={debugPath}>
+                {points.map((point, i) => {
+                  if (i < points.length) {
+                    return (
+                      <cubicBezierCurve3
+                        key={i}
+                        v0={points[i]}
+                        v1={points[i]}
+                        v2={points[i + 1]}
+                        v3={points[i + 1]}
+                      />
+                    );
+                  }
+                })}
+              </MotionPathControls>
+              <mesh ref={dummyObjectRef} />
+
+              <animated.mesh
+                ref={playerRef}
+                scale={0.15}
+                {...springs}
+                onClick={handleClick}
+              >
+                <sphereGeometry />
+                <meshStandardMaterial color="purple" />
+              </animated.mesh>
+            </>
           )}
 
           <Floor onClick={handleClick} />
