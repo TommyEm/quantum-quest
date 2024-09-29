@@ -45,6 +45,14 @@ const points = [
   new THREE.Vector3(-7.5, -4, -9), // Exit
 ];
 
+const getPointIndex = (points, pointPosition) => {
+  return points
+    .map((point, i) =>
+      point.x === pointPosition.x && point.z === pointPosition.z ? i : -1
+    )
+    .find((i) => i >= 0 || 0);
+};
+
 export default function Experience() {
   const playerRef = useRef(null);
   const [path, setPath] = useState([points[0]]);
@@ -69,24 +77,24 @@ export default function Experience() {
 
     const playerPosition = playerRef.current?.position;
     const spotPosition = e.object.position;
-    console.log(spotPosition);
+    const startPointIndex = getPointIndex(points, playerPosition);
+    const endPointIndex = getPointIndex(points, spotPosition);
 
-    const startPointIndex = points
-      .map((point, i) =>
-        point.x === playerPosition.x && point.z === playerPosition.z ? i : -1
-      )
-      .find((i) => i >= 0 || 0);
-    const endPointIndex = points
-      .map((point, i) => {
-        return point.x === spotPosition.x && point.z === spotPosition.z
-          ? i
-          : -1;
-      })
-      .find((i) => i >= 0 || 0);
+    const isGoingForward = startPointIndex < endPointIndex;
+    const orderedPoints = isGoingForward ? points : points.reverse();
 
-    const pointsToMove = points.slice(startPointIndex, endPointIndex + 1);
+    const startOrderedPointIndex = getPointIndex(orderedPoints, playerPosition);
+    const endOrderedPointIndex = getPointIndex(orderedPoints, spotPosition);
+
+    const pointsToMove = orderedPoints.slice(
+      startOrderedPointIndex,
+      endOrderedPointIndex + 1
+    );
 
     api.start({
+      from: {
+        position: [playerPosition.x, playerPosition.y, playerPosition.z],
+      },
       to: async (next, cancel) => {
         for (const point of pointsToMove) {
           await next({ position: [point.x, point.y, point.z] });
