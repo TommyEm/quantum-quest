@@ -1,33 +1,99 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { isEqual } from "lodash";
+import * as THREE from "three";
 import {
   MotionPathControls,
   OrbitControls,
   PresentationControls,
 } from "@react-three/drei";
+import { animated, useSpring } from "@react-spring/three";
 import { Physics } from "@react-three/rapier";
 import { useControls } from "leva";
-import { bezier } from "@leva-ui/plugin-bezier";
 import { Perf } from "r3f-perf";
 import { Floor } from "./Floor";
 import { Player } from "./components/Player/Player";
 import { Player2 } from "./components/Player/Player2";
 import { Motion } from "./components/Motion/Motion";
 
+const points = [
+  new THREE.Vector3(5, 1.5, -7), // Spot 0
+  new THREE.Vector3(5, 1.5, -5.5),
+  new THREE.Vector3(5, 0.5, -4),
+  new THREE.Vector3(7, 0.5, -4), // Spot 1
+  new THREE.Vector3(7, 0.5, -2),
+  new THREE.Vector3(1, 0.5, -2),
+  new THREE.Vector3(1, 0.5, -6),
+  new THREE.Vector3(-2, 0.5, -6), // Spot 2
+  new THREE.Vector3(-2, 0.5, -3),
+  new THREE.Vector3(-5, 0.5, -3),
+  new THREE.Vector3(-5, 0.5, -1), // Spot 3
+  new THREE.Vector3(-1.5, 0.5, -1),
+  new THREE.Vector3(-1.5, 0.5, 0), // Spot 4
+  new THREE.Vector3(0, 0.5, 0),
+  new THREE.Vector3(0, 0.5, 1),
+  new THREE.Vector3(2.5, 0.5, 1),
+  new THREE.Vector3(2.5, 0.5, 3.5), // Spot 5
+  new THREE.Vector3(2.5, 0.5, 5),
+  new THREE.Vector3(-0.5, 0.5, 5),
+  new THREE.Vector3(-0.5, 0.5, 2.5),
+  new THREE.Vector3(-2, 0.5, 2.5),
+  new THREE.Vector3(-2, 0.5, 4), // Spot 6
+  new THREE.Vector3(-5.5, 0.5, 4),
+  new THREE.Vector3(-6.5, 1.5, 4),
+  new THREE.Vector3(-7.5, 0.5, 4),
+  new THREE.Vector3(-7.5, 0.5, 2),
+  new THREE.Vector3(-7.5, -4, -9), // Exit
+];
+
 export default function Experience() {
   const playerRef = useRef(null);
-  const { autoPlay, cameraFullControl, debug, start } = useControls({
-    autoPlay: false,
-    cameraFullControl: false,
-    debug: true,
-    start: true,
+  const [path, setPath] = useState([points[0]]);
+  const { keyboardControl, cameraFullControl, debug, start } = useControls({
+    cameraFullControl: true,
+    debug: false,
+    keyboardControl: false,
+    start: false,
   });
 
-  const points = [
-    { x: 5, y: 1.5, z: -7 },
-    { x: 5, y: 1.5, z: -5.5 },
-    { x: 5, y: 0.5, z: -4 },
-    { x: 7, y: 0.5, z: -4 },
-  ];
+  const [springs, api] = useSpring(
+    () => ({
+      from: {
+        position: [2.5, 0.5, 3.5],
+      },
+    }),
+    []
+  );
+
+  const handleClick = (e) => {
+    e.stopPropagation();
+
+    const playerPosition = playerRef.current?.position;
+    const spotPosition = e.object.position;
+    console.log(spotPosition);
+
+    const startPointIndex = points
+      .map((point, i) =>
+        point.x === playerPosition.x && point.z === playerPosition.z ? i : -1
+      )
+      .find((i) => i >= 0 || 0);
+    const endPointIndex = points
+      .map((point, i) => {
+        return point.x === spotPosition.x && point.z === spotPosition.z
+          ? i
+          : -1;
+      })
+      .find((i) => i >= 0 || 0);
+
+    const pointsToMove = points.slice(startPointIndex, endPointIndex + 1);
+
+    api.start({
+      to: async (next, cancel) => {
+        for (const point of pointsToMove) {
+          await next({ position: [point.x, point.y, point.z] });
+        }
+      },
+    });
+  };
 
   return (
     <>
@@ -52,44 +118,21 @@ export default function Experience() {
         <ambientLight intensity={1.5} />
 
         <Physics debug={debug}>
-          {autoPlay ? (
+          {keyboardControl ? (
             <Player ref={playerRef} />
           ) : (
-            <>
-              <MotionPathControls
-                offset={1}
-                object={playerRef}
-                damping={0}
-                debug
-                duration={0.5}
-                maxSpeed={100}
-                autoStart={start}
-              >
-                {points.reduce((acc, { x, y, z }, i) => {
-                  const endPoint = points[i + 1];
-                  if (endPoint) {
-                    return [
-                      ...acc,
-                      <cubicBezierCurve3
-                        key={`point-${i}`}
-                        v0={[x, y, z]}
-                        v1={[x, y, z]}
-                        v2={[endPoint.x, endPoint.y, endPoint.z]}
-                        v3={[endPoint.x, endPoint.y, endPoint.z]}
-                      />,
-                    ];
-                  }
-                  return acc;
-                }, [])}
-
-                <Motion />
-              </MotionPathControls>
-
-              <Player2 ref={playerRef} />
-            </>
+            <animated.mesh
+              ref={playerRef}
+              scale={0.15}
+              {...springs}
+              onClick={handleClick}
+            >
+              <sphereGeometry />
+              <meshStandardMaterial color="purple" />
+            </animated.mesh>
           )}
 
-          <Floor />
+          <Floor onClick={handleClick} />
         </Physics>
       </PresentationControls>
     </>

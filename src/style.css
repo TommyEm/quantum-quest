@@ -16,6 +16,7 @@ body,
   );
 }
 
+*,
 .rf3,
 canvas {
   touch-action: none;

@@ -1,27 +1,34 @@
 import { useGLTF } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
 import { Spot } from "./components/Spot/Spot";
+import { useRef } from "react";
 
 export const Floor = (props) => {
+  const spot0 = useRef(null);
+  const spot1 = useRef(null);
+  const spot2 = useRef(null);
+  const spot3 = useRef(null);
+  const spot4 = useRef(null);
+  const spot5 = useRef(null);
+  const spot6 = useRef(null);
+  const spot7 = useRef(null);
   const { nodes, materials } = useGLTF("/floor-1.glb");
-
-  const handleSpotClick = () => {
-    console.log("CLICK");
-  };
 
   return (
     <group {...props} dispose={null}>
-      <Spot position={[7, 0.1, -4]} onClick={handleSpotClick} />
-
-      <Spot position={[-2, 0.1, -6]} onClick={handleSpotClick} />
-
-      <Spot position={[-5, 0.1, -1]} onClick={handleSpotClick} />
-
-      <Spot position={[-1.5, 0.1, 0]} onClick={handleSpotClick} />
-
-      <Spot position={[2.5, 0.1, 3.5]} onClick={handleSpotClick} />
-
-      <Spot position={[-2, 0.1, 4]} onClick={handleSpotClick} />
+      <Spot ref={spot0} position={[5, 1.1, -7]} onClick={props.onClick} />
+      <Spot ref={spot1} position={[7, 0.1, -4]} onClick={props.onClick} />
+      <Spot ref={spot2} position={[-2, 0.1, -6]} onClick={props.onClick} />
+      <Spot ref={spot3} position={[-5, 0.1, -1]} onClick={props.onClick} />
+      <Spot ref={spot4} position={[-1.5, 0.1, 0]} onClick={props.onClick} />
+      <Spot ref={spot5} position={[2.5, 0.1, 3.5]} onClick={props.onClick} />
+      <Spot ref={spot6} position={[-2, 0.1, 4]} onClick={props.onClick} />
+      <Spot
+        ref={spot7}
+        position={[-7.5, -4, -9]}
+        scale={1}
+        onClick={props.onClick}
+      />
 
       <RigidBody type="fixed" colliders="trimesh">
         <mesh
